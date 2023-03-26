@@ -1,0 +1,23 @@
+Castraveti 10 30.5 0.2
+ardei 10 30.5 0.2
+Astronaut gonflabil 50 2000 0
+
+Testare comenzi:
+Castraveti 10 30.5 0.2
+
+
+Numele cumparatorului este Andrei ,adresa lui este Tatulesti iar balanta lui este 30.5
+Numele vanzatorului este Andrei ,Balanta este 32.5 ,Adresa este Strada Tatulesti nr. 5
+Produsele sale sunt:
+Castraveti 10 30.5 0.2
+
+salutPlata efectuata cu succes
+Numele cumparatorului este Andrei ,adresa lui este Tatulesti iar balanta lui este 6.1
+Numele vanzatorului este Andrei ,Balanta este 56.9 ,Adresa este Strada Tatulesti nr. 5
+Produsele sale sunt:
+Castraveti 9 30.5 0.2
+
+salut
+Castraveti 10 30.5 0.2
+
+1
