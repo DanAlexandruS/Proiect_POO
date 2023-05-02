@@ -1,9 +1,12 @@
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <vector>
+#include <ctime>
 using namespace std;
 
 ofstream out("out.txt");
-
+/*
 class String // gata
 {
     char *sir;
@@ -149,11 +152,50 @@ ostream & operator <<(ostream &out,String &v1)
     else out<<"Sir gol";
     return out;
 }
-class Data // gata
+*/
+class RatingInvalid: public exception
+{
+
+    string mesaj;
+public:
+    RatingInvalid(string mesaj)
+    {
+        this-> mesaj=mesaj;
+    }
+    RatingInvalid()
+    {
+
+    }
+    string what()
+    {
+        return mesaj;
+    }
+};
+class OutofMoney: public exception
+{
+
+    string mesaj;
+public:
+    OutofMoney(string mesaj)
+    {
+        this-> mesaj=mesaj;
+    }
+    OutofMoney()
+    {
+        mesaj="OutOfMoney";
+    }
+    string what()
+    {
+        return mesaj;
+    }
+};
+
+class Data // gata 2
 {
     int zi,luna,an;
+    static Data astazi;
 public:
-    Data(Data &d1)
+    Data(const Data &d1)
     {
         zi=d1.zi;
         luna=d1.luna;
@@ -171,7 +213,7 @@ public:
         this-> luna = luna;
         this-> an = an;
     }
-    void operator = (Data &d1)
+    void operator = (const Data &d1)
     {
 
         this->zi=d1.zi;
@@ -225,11 +267,152 @@ public:
         }
         return ok;
     }
+    static Data return_astazi()
+    {
+        return astazi;
+    }
+
+};
+
+time_t t=time(NULL);
+tm* timePtr= localtime(&t);
+Data azi(timePtr->tm_mday+1,timePtr->tm_mon+1,timePtr->tm_year+1900);
+Data Data::astazi=azi;
+
+class Review
+{
+    public:
+    virtual void show_full_review() const =0;
+    virtual void recomandat() const=0;
+    virtual ~Review()
+    {
+
+    }
+};
+
+class ReviewPersonal:public Review
+{
+    string Nume,adresa,comentariu;
+    double rating;
+    ReviewPersonal()
+    {
+        rating=0;
+    }
+    ReviewPersonal(string comentariu,string Nume,string adresa,double rating)
+    {
+            this->comentariu=comentariu;
+            this->adresa=adresa;
+            this->rating=rating;
+    }
+    void show_full_review() const
+    {    if (rating>5 && rating<0)
+         {
+                 try
+                  { string mesaj="Rating invalid";
+                    throw RatingInvalid(mesaj);
+                  }
+                  catch(RatingInvalid exc)
+                  {
+                      exc.what();
+                      throw RatingInvalid();
+                  }
+        }
+        cout<<"Numele persoanei este:"<<Nume<<" adresa este:"<<adresa<<" rating-ul acordat este:"<<rating<<endl;
+        cout<<"Comentariu:"<<endl;
+        cout<<comentariu;
+    }
+    void recomandat()const
+    {   if (rating>5 && rating<0)
+        {   try
+              { string mesaj="Rating invalid";
+                throw RatingInvalid(mesaj);
+              }
+              catch(RatingInvalid exc)
+              {
+                  exc.what();
+              }
+        }
+        if(rating > 3)
+            cout<<"Produs recomandat";
+        else if(rating>2.5)
+            cout<<"Produs sub medie dar ok";
+        else
+            cout<<"Produs de proasta calitate";
+    }
 
 };
 
 
-class Reduceri //gata
+class ReviewProfesionist:public Review
+{
+    string Nume,lista_publicatii,diplome,recenzie;
+    double rating;
+    ReviewProfesionist(string Nume,string lista_publicatii,string diplome, string recenzie,double rating)
+    {
+        this->Nume=Nume;
+        this->lista_publicatii=lista_publicatii;
+        this->diplome=diplome;
+        this->recenzie=recenzie;
+        this->rating=rating;
+    }
+    ReviewProfesionist()
+    {
+        rating=0;
+    }
+     void show_full_review() const
+    {   if (rating>5 && rating<0)
+        {   try
+              { string mesaj="Rating invalid";
+                throw RatingInvalid(mesaj);
+              }
+              catch(RatingInvalid exc)
+              {
+                  exc.what();
+              }
+        }
+
+        cout<<"Numele persoanei este:"<<Nume<<" publicatiile sunt:"<<lista_publicatii<<" diplomele lui sunt:"<<diplome<<" rating-ul acordat este:"<<rating<<endl;
+        cout<<"Recenzie:"<<endl;
+        cout<<recenzie;
+    }
+    void recomandat() const
+    {   if (rating>5 && rating<0)
+        {   try
+              { string mesaj="Rating invalid";
+                throw RatingInvalid(mesaj);
+              }
+              catch(RatingInvalid exc)
+              {
+                  exc.what();
+              }
+        }
+        if(rating>4)
+            cout<<"Produs recomandat";
+        else if(rating >3)
+            cout<<"Produs bun dar nu de calitate mare";
+        else if(rating>2.5)
+            cout<<"Produs pur mediocru";
+        else
+            cout<<"Nerecomandabil , calitatea , pretul sau chiar ambele nu se potrivesc";
+    }
+
+};
+
+
+class Cod_Personal
+{   public:
+    string cod;
+    Cod_Personal()
+    {
+        cod="";
+    }
+    Cod_Personal(string cod)
+    {
+        this->cod=cod;
+    }
+};
+
+class Reduceri //gata 2
 {
     double procentaj;
     Data data_inceput;
@@ -250,13 +433,13 @@ public:
         data_inceput= date1;
         data_final=date2;
     }
-    Reduceri(Reduceri & reducere1)
+    Reduceri(const Reduceri & reducere1)
     {
         procentaj = reducere1.procentaj;
         data_inceput=reducere1.data_inceput;
         data_final=reducere1.data_final;
     }
-    void operator =(Reduceri &reducere1)
+    void operator =(const Reduceri &reducere1)
     {
         procentaj = reducere1.procentaj;
         data_inceput=reducere1.data_inceput;
@@ -303,30 +486,40 @@ public:
 };
 
 
-class MagazinOnline
+class MagazinOnline //urmeaza
 {
 
 
 };
 
-class Produse //gata
+class Produse:protected Cod_Personal //gata 2
 {
-    String nume_produs;
+protected:
+    static int nr_produse;
+    string nume_produs;
     int cantitate_produs;
     double pret;
     Reduceri reducere;
 
 public:
-    void operator = (Produse & produs)
+    void operator = (const Produse & produs)
     {
         nume_produs=produs.nume_produs;
         cantitate_produs=produs.cantitate_produs;
         pret=produs.pret;
         reducere=produs.reducere;
     }
+    string get_code()
+    {
+        return cod;
+    }
+    void set_code(string cod)
+    {
+        this->cod=cod;
+    }
     Produse()
     {
-        String nume;
+        string nume;
         nume_produs=nume;
 
         cantitate_produs=0;
@@ -334,22 +527,33 @@ public:
         Data d1,d2;
         Reduceri reducere1(0.0,d1,d2);
         reducere = reducere1;
+        nr_produse++;
 
     }
-    Produse(String nume, int cantitate, double pret, Reduceri reducere1)
+    Produse(string nume, int cantitate, double pret, Reduceri reducere1)
     {
         nume_produs=nume;
         cantitate_produs=cantitate;
         this->pret= pret;
         reducere = reducere1;
+        nr_produse++;
     }
-    Produse(String nume, int cantitate, double pret)
+    Produse(string nume, int cantitate, double pret)
     {
         nume_produs=nume;
         cantitate_produs=cantitate;
         this->pret=pret;
+        nr_produse++;
     }
-    String get_nume()
+    Produse(const Produse &produs)
+    {
+        nume_produs=produs.nume_produs;
+        cantitate_produs=produs.cantitate_produs;
+        pret=produs.pret;
+        reducere=produs.reducere;
+        nr_produse++;
+    }
+    string get_nume()
     {
         return nume_produs;
     }
@@ -365,7 +569,7 @@ public:
     {
         return reducere;
     }
-    void set_nume(String nume)
+    void set_nume(string nume)
     {
         nume_produs=nume;
     }
@@ -386,15 +590,93 @@ public:
         cout<<nume_produs<<" "<<cantitate_produs<<" "<<pret<<" "<<reducere.get_procentaj()<<endl;
 
     }
-   bool operator ==(Produse &produs)
+    bool operator ==(const Produse &produs)
     {
 
         if(produs.cantitate_produs!=cantitate_produs||produs.pret!=pret||(!(nume_produs==produs.nume_produs)))
             return 0;
         return 1;
-   }
+    }
+    static int get_nr_produse()
+    {
+        return nr_produse;
+    }
+    virtual ~Produse()
+    {
+        --nr_produse;
+    }
 
 };
+int Produse::nr_produse =0;
+
+class ProdusePerisabile:public virtual Produse
+{   protected:
+    bool aproape_expirat;
+    public:
+    double get_pret()
+    {
+        if(aproape_expirat==1)
+            return pret*0.5;
+    }
+    ProdusePerisabile():Produse()
+        {
+            aproape_expirat=0;
+        }
+    ProdusePerisabile(string nume, int cantitate, double pret, Reduceri reducere1,bool expirat):Produse(nume,cantitate,pret,reducere1)
+    {
+        this->aproape_expirat=expirat;
+    }
+    ProdusePerisabile(string nume, int cantitate, double pret,bool expirat):Produse(nume,cantitate,pret)
+    {
+        this->aproape_expirat=expirat;
+    }
+};
+
+class ProduseLimitate:public virtual Produse
+{   protected:
+    Data limita;
+    public:
+    int get_cantitate()
+    {
+        if(!(Data::return_astazi() < limita))
+            return 0;
+        else return cantitate_produs;
+    }
+    ProduseLimitate():Produse()
+        {
+            limita=Data::return_astazi();
+        }
+    ProduseLimitate(string nume, int cantitate, double pret, Reduceri reducere1,Data d1):Produse(nume,cantitate,pret,reducere1)
+    {
+        limita=d1;
+    }
+    ProduseLimitate(string nume, int cantitate, double pret,Data d1):Produse(nume,cantitate,pret)
+    {
+        limita=d1;
+    }
+};
+
+class ProduseLimitatePerisabile:public ProduseLimitate,public ProdusePerisabile
+{
+    ProduseLimitatePerisabile():Produse()
+        {
+            limita=Data::return_astazi();
+            aproape_expirat=0;
+        }
+    ProduseLimitatePerisabile(string nume, int cantitate, double pret, Reduceri reducere1,Data d1,bool expirat):ProduseLimitate(nume,cantitate,pret,reducere1,d1)
+    {
+        aproape_expirat=expirat;
+    }
+    ProduseLimitatePerisabile(string nume, int cantitate, double pret,Data d1,bool expirat):ProduseLimitate(nume,cantitate,pret,d1)
+    {
+        limita=d1;
+        aproape_expirat=expirat;
+    }
+
+};
+
+
+/*
 class Vector_Produse // gata
 {
     Produse *produse;
@@ -425,7 +707,8 @@ public:
         n=0;
     }
     Vector_Produse(Produse v[],int n)
-    {   if (n==0)
+    {
+        if (n==0)
         {
             produse==nullptr;
             n=0;
@@ -473,7 +756,8 @@ public:
         n=n+1;
     }
     void sterge_produs(int i)
-    {   if (i>=n)
+    {
+        if (i>=n)
         {
             cout<<"Nu exista element pe pozitia aia"<<endl;
             return;
@@ -493,7 +777,7 @@ public:
     void afisare_vector()
     {
         int i=0;
-        for(i=0;i<n;i++)
+        for(i=0; i<n; i++)
             produse[i].afisare_produs();
         cout<<endl;
         if(n==0)
@@ -509,25 +793,27 @@ public:
     }
 };
 
+*/
+
 class Vanzator //Testat si functioneaza
 {
-    String nume_vanzator;
-    Vector_Produse catalog_produse;
+    string nume_vanzator;
+    vector<Produse> catalog_produse;
     double balanta_vanzator;
-    String adresa_vanzator;
+    string adresa_vanzator;
 public:
     Vanzator()
-    {   Vector_Produse v2;
-        String vid;
+    {
+
+        string vid;
         nume_vanzator=vid;
         adresa_vanzator=vid;
         balanta_vanzator=0;
-        Vector_Produse v1 = v2;
+
     }
-    Vanzator(String nume , Vector_Produse catalog ,double balanta , String adresa )
+    Vanzator(string nume, vector <Produse> catalog,double balanta, string adresa )
     {
         nume_vanzator=nume;
-
         catalog_produse=catalog;
         balanta_vanzator=balanta;
         adresa_vanzator=adresa;
@@ -539,11 +825,11 @@ public:
         balanta_vanzator=v1.balanta_vanzator;
         adresa_vanzator=v1.adresa_vanzator;
     }
-    void set_nume(String nume)
+    void set_nume(string nume)
     {
         nume_vanzator=nume;
     }
-    void set_vector(Vector_Produse v1)
+    void set_vector(vector<Produse> v1)
     {
         catalog_produse=v1;
     }
@@ -551,15 +837,15 @@ public:
     {
         balanta_vanzator=balanta;
     }
-    void set_adresa(String adresa)
+    void set_adresa(string adresa)
     {
         adresa_vanzator=adresa;
     }
-    String get_nume()
+    string get_nume()
     {
         return nume_vanzator;
     }
-    Vector_Produse get_catalog()
+    vector<Produse> get_catalog()
     {
         return catalog_produse;
     }
@@ -567,58 +853,59 @@ public:
     {
         return balanta_vanzator;
     }
-    String get_adresa()
+    string get_adresa()
     {
         return adresa_vanzator;
     }
     void adauga_produse(Produse produs)
     {
-        catalog_produse.add_produs(produs);
+        catalog_produse.push_back(produs);
     }
     void sterge_produs(int i)
     {
-        catalog_produse.sterge_produs(i);
+        catalog_produse.erase(catalog_produse.begin()+i);
     }
     void afiseaza_vanzator()
     {
         cout<<"Numele vanzatorului este "<<nume_vanzator<<" ,Balanta este "<<balanta_vanzator<<" ,Adresa este "<<adresa_vanzator<<endl;
-        cout<<"Produsele sale sunt:"<<endl;
-
 
     }
     void afisare_produse_vanzator()
     {
-        catalog_produse.afisare_vector();
+        for(int i=0;i<catalog_produse.size();i++)
+        {
+            catalog_produse[i].afisare_produs();
+        }
     }
 
 
 
 };
 
-class Cumparatori //practic gata
+class Cumparatori //practic gata 2
 {
-    String nume_cumparator;
-    String adresa_cumparator;
+    string nume_cumparator;
+    string adresa_cumparator;
     double balanta_cumparator;
 public:
     Cumparatori()
     {
-        String vid;
+        string vid;
         nume_cumparator=vid;
         adresa_cumparator=vid;
         balanta_cumparator=0;
     }
-    Cumparatori(String nume_cumparator, String adresa_cumparator, double balanta_cumparator)
+    Cumparatori(string nume_cumparator, string adresa_cumparator, double balanta_cumparator)
     {
         this->nume_cumparator=nume_cumparator;
         this->adresa_cumparator=adresa_cumparator;
         this->balanta_cumparator=balanta_cumparator;
     }
-    void set_nume_cumparator(String nume)
+    void set_nume_cumparator(string nume)
     {
         nume_cumparator=nume;
     }
-    void set_adresa_cumparator(String adresa)
+    void set_adresa_cumparator(string adresa)
     {
         adresa_cumparator=adresa;
     }
@@ -630,22 +917,31 @@ public:
     {
         balanta_cumparator+=d;
     }
-    String get_nume()
+    string get_nume()
     {
         return nume_cumparator;
     }
-    String get_adresa()
+    string get_adresa()
     {
         return adresa_cumparator;
     }
-    double get_balanta()
+    virtual double get_balanta()
     {
-
         return balanta_cumparator;
     }
+
     void afisare_cumparator()
     {
         cout<<"Numele cumparatorului este "<<nume_cumparator<<" ,adresa lui este "<<adresa_cumparator<<" iar balanta lui este "<<balanta_cumparator<<endl;
+    }
+
+};
+
+class CumparatoriAdministrator
+{
+    double get_balanta()
+    {
+        return 100000000;
     }
 };
 
@@ -653,16 +949,15 @@ class Comenzi
 {
     Cumparatori cumparator;
     Vanzator vanzator;
-    Vector_Produse cumparaturi;
-    public:
+    vector <Produse> cumparaturi;
+public:
     Comenzi()
     {
         Cumparatori c1;
         Vanzator v1;
-        Vector_Produse vid;
         cumparator=c1;
         vanzator=v1;
-        cumparaturi=vid;
+
     }
     Comenzi(const Comenzi &comanda)
     {
@@ -670,7 +965,7 @@ class Comenzi
         vanzator=comanda.vanzator;
         cumparaturi=comanda.cumparaturi;
     }
-    Comenzi(Cumparatori cumparator1,Vanzator vanzator1,Vector_Produse catalog)
+    Comenzi(Cumparatori cumparator1,Vanzator vanzator1,vector<Produse> catalog)
     {
         cumparator=cumparator1;
         vanzator=vanzator1;
@@ -684,7 +979,7 @@ class Comenzi
     {
         vanzator=vanzator1;
     }
-    void set_cumparaturi(Vector_Produse catalog)
+    void set_cumparaturi(vector<Produse> catalog)
     {
         cumparaturi=catalog;
     }
@@ -696,7 +991,7 @@ class Comenzi
     {
         return vanzator;
     }
-    Vector_Produse get_cumparaturi()
+    vector<Produse> get_cumparaturi()
     {
         return cumparaturi;
     }
@@ -704,147 +999,118 @@ class Comenzi
     {
         cumparator.afisare_cumparator();
         vanzator.afiseaza_vanzator();
-        cumparaturi.afisare_vector();
-        cout<<"salut";
+        for(int i=0;i<cumparaturi.size();i++)
+        {
+            cumparaturi[i].afisare_produs();
+        }
     }
     void plata()
     {
         int index;
         double cost=0;
         bool suficient=1;
-        bool are=1;
-        for(index=0;index<cumparaturi.get_size();index++)
-        {
-            cost+=cumparaturi.produse[index].get_pret()*(1-cumparaturi.produse[index].get_reducere().get_procentaj());
-            if(cumparaturi.produse[index].get_cantitate()==0)
-               {
-                   suficient=0;
-
-               }
-            int i=0;
-            for(i=0;i<vanzator.get_catalog().get_size();i++)
+        bool exista;
+        for(int i=0;i<cumparaturi.size();i++)
+        {   exista=0;
+            for(int j=0;j<vanzator.get_catalog().size();j++)
             {
-                are=0;
-                if(vanzator.get_catalog().produse[i]==cumparaturi.produse[index])
-                {
-                    are=1;
-                    break;  // verific daca produsul cumparat e detinut de vanzator
+                if(cumparaturi[i]==vanzator.get_catalog()[j])
+                   exista=1;
+            }
+            if(exista==0)
+                {cout<<"Un produs nu exista in catalogul cumparatorului";
+                    return;
                 }
+            else
+            {
+                cost+=cumparaturi[i].get_pret()*(1-cumparaturi[i].get_reducere().get_procentaj());
             }
 
         }
+        if(cost>cumparator.get_balanta())
+        {   try
+            {
+                throw OutofMoney();
+            }
 
-        if(cost > cumparator.get_balanta())
-        {
-            cout<<"Plata nu poate fi efectuata deoarece cumparatorul nu are suficienti bani"<<endl;
+            catch(OutofMoney money)
+            {
+                cout<<"Cumparatorul nu are suficienti bani";
+            }
             return;
         }
         else
         {
-            if(suficient==0)
-                cout<<"Plata nu poate efectuata deoarece un produs nu mai este pe stoc"<<endl;
-            else
-            {
-                cumparator.set_balanta_cumparator(cumparator.get_balanta()-cost);
-                vanzator.set_balanta(vanzator.get_balanta()+cost);
-                for(index=0;index<cumparaturi.get_size();index++)
-                    cumparaturi.produse[index].set_cantitate(cumparaturi.produse[index].get_cantitate()-1);
-                cout<<"Plata efectuata cu succes"<<endl;
-            }
-        }
-    }
+            cumparator.set_balanta_cumparator(cumparator.get_balanta()-cost);
+            vanzator.set_balanta(vanzator.get_balanta()-cost);
+            cout<<"Comanda efectuata cu succes"<<endl;
 
+        }
+
+    }
 };
 
+class Advertisement
+{   protected:
+    string text;
+    public:
+    virtual void afisare_pe_ecran() const = 0;
+};
+class AdvertisementMic:public Advertisement
+{   public:
+   void afisare_pe_ecran()const
+    {
+        cout<<"Aceasta reclama apare ca o fereastra in partea din stanga jos a browseru-lui"<<endl;
+        cout<<text;
+    }
+};
 
-
-
-
+class AdvertisementMare:public Advertisement
+{   public:
+    void afisare_pe_ecran()const
+    {
+        cout<<"Aceasta reclama apare mare sub barea de stare a browseru-lui si ocupa 20% din fereastra"<<endl;
+        cout<<text;
+    }
+};
 int main()
-{   cout.rdbuf(out.rdbuf());
-
-    String s1("are"),s2(" mere");
-    String s3=s1+s2;
-    String s4;
-    s3=s4;
-    //cout<<s4;
-    //cout<<s3;
-    Data d1(1,12,2023);
-    //d1.afisare_date();
-    Data d2(1,11,2023);
-    Data d3 = d2;
-    //d3.afisare_date();
-    Reduceri reducere2(0.2,d1,d2);
-    //reducere2.afisare_durata();
-    Reduceri reducere3(reducere2);
-    //reducere3.afisare_durata();
-    Reduceri reducere4 = reducere3;
-    //reducere4.afisare_durata();
+{
 
 
-    Produse p1("ardei",10,30.5,reducere2);
-    Produse p3("balonase",200,0.3,reducere3);
-    Produse p2;
+    vector <Produse> catalog;
+    Produse produs1("andrei",123,30.5);
+    Produse produs2("aladin",123,30.5);
+    Produse produs3("antonescu",123,30.5);
+    produs1.afisare_produs();
+    catalog.push_back(produs1);
+    catalog.push_back(produs2);
+    catalog.push_back(produs3);
 
+    vector <Produse> cumparat;
+    cumparat.push_back(produs2);
+    cumparat.push_back(produs3);
+    for(int i=0;i<catalog.size();i++)
+    {
+        catalog[i].afisare_produs();
+    }
+    cout<<endl<<endl<<endl;
+    Cumparatori cumparator1("Andrei","Strada Giurgiu nr 5",120);
+    Vanzator vanzator1("Alin",catalog,150,"Strada mea");
+    vanzator1.afisare_produse_vanzator();
+    cout<<cumparator1.get_balanta();
+    Comenzi comanda1(cumparator1,vanzator1,cumparat);
+    cout<<comanda1.get_cumparator().get_balanta();
 
-
-    //p1.afisare_produs();
-    //p2.afisare_produs();
-    p2=p1;
-    p2.set_nume("Castraveti");
-    //p2.afisare_produs();
-    //p3.afisare_produs();
-    //cout<<"Testare vector:"<<endl;
-    Produse a[]={p2,p1,p3};
-    Vector_Produse v1(a,3);
-    //v1.afisare_vector();
-    Produse p4("Astronaut gonflabil",50,2000);
-    v1.add_produs(p4);
-    //cout<<"Test 2"<<endl<<endl;
-    //v1.afisare_vector();
-    //cout<<"Test 3"<<endl<<endl;
-    v1.sterge_produs(2);
-    v1.afisare_vector();
-
-    //cout<<"Test vid"<<endl<<endl;
-    Vector_Produse v2;
-    //v2.afisare_vector();
-    v2.add_produs(p2);
-    //v2.afisare_vector();
-    //v2.sterge_produs(0);
-    //v2.afisare_vector();
-
-    Vector_Produse v3;
-
-    v3=v1;
-    //v3.afisare_vector();
-    Vector_Produse v4(v3);
-
-
-    Produse produs5("Apa",32,32.5,reducere2);
-    Vanzator vanzator1("Andrei",v3,32.5,"Strada Tatulesti nr. 5");
-    //vanzator1.afiseaza_vanzator();
-    vanzator1.adauga_produse(produs5);
-    //vanzator1.afiseaza_vanzator();
-    vanzator1.sterge_produs(0);
-    //cout<<"Produse dupa ce a fost sters unul"<<endl;
-    //vanzator1.afiseaza_vanzator();
-    Comenzi comanda1;
-    //v3.afisare_vector();
-    v3=v2;
-    //v3.afisare_vector();
-    Cumparatori cumparator1("Andrei","Tatulesti",30.5);
-    cout<<"Testare comenzi:"<<endl;
-    Comenzi comanda2(cumparator1,vanzator1,v3);
-    comanda2.get_cumparaturi().afisare_vector();
+    comanda1.plata();
+    cout<<comanda1.get_cumparator().get_balanta();
     cout<<endl;
-    comanda2.afisare_comanda();
-    comanda2.plata();
-    comanda2.afisare_comanda();
-    cout<<endl;
-    v3.afisare_vector();
-    String s7("salut1"),s8("salut1");
-    cout<<(s7==s8);
+    Produse bonus_produs;
+    cout<<Produse::get_nr_produse();
+
+    Data d1;
+    d1 = Data::return_astazi();
+    d1.afisare_date();
+
 
     return 0;
 }
