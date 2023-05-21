@@ -486,11 +486,6 @@ public:
 };
 
 
-class MagazinOnline //urmeaza
-{
-
-
-};
 
 class Produse:protected Cod_Personal //gata 2
 {
@@ -657,7 +652,7 @@ class ProduseLimitate:public virtual Produse
 };
 
 class ProduseLimitatePerisabile:public ProduseLimitate,public ProdusePerisabile
-{
+{   public:
     ProduseLimitatePerisabile():Produse()
         {
             limita=Data::return_astazi();
@@ -675,6 +670,26 @@ class ProduseLimitatePerisabile:public ProduseLimitate,public ProdusePerisabile
 
 };
 
+enum TipProduse
+{
+    ProdusePeri,ProduseLimi,ProdusePeriLimi
+};
+
+class ProductFactory
+{
+    Produse* build(TipProduse tipProdus)
+    {
+        if(tipProdus==ProdusePeri)
+            return new ProdusePerisabile;
+        if(tipProdus==ProduseLimi)
+            return new ProduseLimitate;
+        if(tipProdus==ProdusePeriLimi)
+            return new ProduseLimitatePerisabile;
+        else return nullptr;
+    }
+
+
+};
 
 /*
 class Vector_Produse // gata
@@ -798,7 +813,7 @@ public:
 class Vanzator //Testat si functioneaza
 {
     string nume_vanzator;
-    vector<Produse> catalog_produse;
+    vector<Produse*> catalog_produse;
     double balanta_vanzator;
     string adresa_vanzator;
 public:
@@ -811,7 +826,7 @@ public:
         balanta_vanzator=0;
 
     }
-    Vanzator(string nume, vector <Produse> catalog,double balanta, string adresa )
+    Vanzator(string nume, vector <Produse*> catalog,double balanta, string adresa )
     {
         nume_vanzator=nume;
         catalog_produse=catalog;
@@ -829,7 +844,7 @@ public:
     {
         nume_vanzator=nume;
     }
-    void set_vector(vector<Produse> v1)
+    void set_vector(vector<Produse*> v1)
     {
         catalog_produse=v1;
     }
@@ -845,7 +860,7 @@ public:
     {
         return nume_vanzator;
     }
-    vector<Produse> get_catalog()
+    vector<Produse*> get_catalog()
     {
         return catalog_produse;
     }
@@ -857,12 +872,12 @@ public:
     {
         return adresa_vanzator;
     }
-    void adauga_produse(Produse produs)
+    void adauga_produse(Produse* produs)
     {
         catalog_produse.push_back(produs);
     }
     void sterge_produs(int i)
-    {
+    {   delete catalog_produse[i];
         catalog_produse.erase(catalog_produse.begin()+i);
     }
     void afiseaza_vanzator()
@@ -874,8 +889,16 @@ public:
     {
         for(int i=0;i<catalog_produse.size();i++)
         {
-            catalog_produse[i].afisare_produs();
+            catalog_produse[i]->afisare_produs();
         }
+    }
+    ~Vanzator()
+    {
+        for(vector<Produse*>::iterator it=catalog_produse.begin();it!=catalog_produse.end();it++)
+        {
+            delete *it;
+        }
+        catalog_produse.clear();
     }
 
 
@@ -937,8 +960,8 @@ public:
 
 };
 
-class CumparatoriAdministrator
-{
+class CumparatoriAdministrator:public Cumparatori
+{   public:
     double get_balanta()
     {
         return 100000000;
@@ -1014,7 +1037,7 @@ public:
         {   exista=0;
             for(int j=0;j<vanzator.get_catalog().size();j++)
             {
-                if(cumparaturi[i]==vanzator.get_catalog()[j])
+                if(cumparaturi[i]==*vanzator.get_catalog()[j])
                    exista=1;
             }
             if(exista==0)
@@ -1073,6 +1096,101 @@ class AdvertisementMare:public Advertisement
         cout<<text;
     }
 };
+class MagazinOnline //urmeaza
+{
+    static MagazinOnline *p;
+    vector <Produse*> produse;
+    vector<Cumparatori *> cumparatori;
+    vector <Vanzator *> vanzatori;
+
+public:
+    static MagazinOnline * getInstance()
+    {
+        if (p==nullptr)
+        {
+            p = new MagazinOnline();
+
+        }
+        return p;
+    }
+    void adauga_produse(Produse *p)
+    {
+        produse.push_back(p);
+    }
+    void sterge_produs(int i)
+    {
+       delete produse[i];
+       produse.erase(produse.begin()+i);
+    }
+
+    void adauga_cumparatori(Cumparatori *p)
+    {
+        cumparatori.push_back(p);
+    }
+    void sterge_cumparator(int i)
+    {
+       delete cumparatori[i];
+       cumparatori.erase(cumparatori.begin()+i);
+    }
+    void adauga_vanzator(Vanzator *p)
+    {
+        vanzatori.push_back(p);
+    }
+    void sterge_vanzator(int i)
+    {
+       delete vanzatori[i];
+       vanzatori.erase(vanzatori.begin()+i);
+    }
+    void copiaza_vector_produse(vector<Produse*> p)
+    {   for(vector<Produse *>::iterator it=produse.begin();it<produse.end();it++)
+        {
+            delete *it;
+        }
+        produse.clear();
+        copy(p.begin(),p.end(),produse.begin());
+    }
+    void copiaza_vector_cumparatori(vector<Cumparatori*> p)
+    {   for(vector<Cumparatori *>::iterator it=cumparatori.begin();it<cumparatori.end();it++)
+        {
+            delete *it;
+        }
+        cumparatori.clear();
+        copy(p.begin(),p.end(),cumparatori.begin());
+    }
+    void copiaza_vector_vanzatori(vector<Vanzator*> p)
+    {   for(vector<Vanzator *>::iterator it=vanzatori.begin();it<vanzatori.end();it++)
+        {
+            delete *it;
+        }
+        vanzatori.clear();
+        copy(p.begin(),p.end(),vanzatori.begin());
+    }
+    void umple_catalog_vanzator(Produse* produs,int index,int numar_produse)
+    {
+        fill_n(vanzatori[index]->get_catalog().begin(),numar_produse,produs);
+    }
+
+    ~MagazinOnline()
+    {
+        for(vector<Produse *>::iterator it=produse.begin();it<produse.end();it++)
+        {
+            delete *it;
+        }
+        for(vector<Cumparatori *>::iterator it=cumparatori.begin();it<cumparatori.end();it++)
+        {
+            delete *it;
+        }
+        for(vector<Vanzator *>::iterator it=vanzatori.begin();it<vanzatori.end();it++)
+        {
+            delete *it;
+        }
+        produse.clear();
+        cumparatori.clear();
+        vanzatori.clear();
+    }
+
+};
+
 int main()
 {
 
@@ -1095,8 +1213,8 @@ int main()
     }
     cout<<endl<<endl<<endl;
     Cumparatori cumparator1("Andrei","Strada Giurgiu nr 5",120);
-    Vanzator vanzator1("Alin",catalog,150,"Strada mea");
-    vanzator1.afisare_produse_vanzator();
+
+/*
     cout<<cumparator1.get_balanta();
     Comenzi comanda1(cumparator1,vanzator1,cumparat);
     cout<<comanda1.get_cumparator().get_balanta();
@@ -1110,7 +1228,10 @@ int main()
     Data d1;
     d1 = Data::return_astazi();
     d1.afisare_date();
+*/
+
 
 
     return 0;
 }
+
